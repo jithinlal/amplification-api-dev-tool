@@ -1,10 +1,18 @@
 {
-  "dataServiceGeneratorVersion": "0.5.3",
+  "dataServiceGeneratorVersion": "0.9.0",
   "appInfo": {
     "name": "My sample app",
     "description": "Sample App for task management",
-    "version": "zagp26k6",
+    "version": "362nqx41",
     "id": "ckoaaxvvn4278871bs6j83wexwf",
-    "url": "https://app.amplication.com/ckoaaxvvn4278871bs6j83wexwf"
+    "url": "https://app.amplication.com/ckoaaxvvn4278871bs6j83wexwf",
+    "settings": {
+      "dbHost": "localhost",
+      "dbName": "",
+      "dbPassword": "admin",
+      "dbPort": 5432,
+      "dbUser": "admin",
+      "appId": "ckoaaxvvn4278871bs6j83wexwf"
+    }
   }
 }
