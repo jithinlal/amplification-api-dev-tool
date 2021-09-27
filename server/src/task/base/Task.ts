@@ -1,27 +1,26 @@
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { User } from "../../user/base/User";
 import {
   ValidateNested,
-  IsOptional,
   IsDate,
-  IsInt,
   IsString,
+  IsOptional,
   IsEnum,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { ProjectWhereUniqueInput } from "../../project/base/ProjectWhereUniqueInput";
+import { Project } from "../../project/base/Project";
 import { EnumTaskStatus } from "./EnumTaskStatus";
 @ObjectType()
 class Task {
   @ApiProperty({
-    required: false,
-    type: UserWhereUniqueInput,
+    required: true,
+    type: () => User,
   })
   @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
-  @IsOptional()
-  assignedTo?: UserWhereUniqueInput | null;
+  @Type(() => User)
+  assignedTo?: User;
+
   @ApiProperty({
     required: true,
   })
@@ -29,16 +28,7 @@ class Task {
   @Type(() => Date)
   @Field(() => Date)
   createdAt!: Date;
-  @ApiProperty({
-    required: false,
-    type: Number,
-  })
-  @IsInt()
-  @IsOptional()
-  @Field(() => Number, {
-    nullable: true,
-  })
-  estimation!: number | null;
+
   @ApiProperty({
     required: true,
     type: String,
@@ -46,27 +36,37 @@ class Task {
   @IsString()
   @Field(() => String)
   id!: string;
+
   @ApiProperty({
     required: true,
-    type: ProjectWhereUniqueInput,
+    type: () => Project,
   })
   @ValidateNested()
-  @Type(() => ProjectWhereUniqueInput)
-  project?: ProjectWhereUniqueInput;
+  @Type(() => Project)
+  project?: Project;
+
   @ApiProperty({
-    required: true,
+    required: false,
   })
   @IsDate()
   @Type(() => Date)
-  @Field(() => Date)
-  startDate!: Date;
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  stateDate!: Date | null;
+
   @ApiProperty({
-    required: true,
+    required: false,
     enum: EnumTaskStatus,
   })
   @IsEnum(EnumTaskStatus)
-  @Field(() => EnumTaskStatus)
-  status?: "new" | "pending" | "onHold" | "ongoing" | "done";
+  @IsOptional()
+  @Field(() => EnumTaskStatus, {
+    nullable: true,
+  })
+  status?: "New" | "Pending" | "Ongoing" | "Done" | null;
+
   @ApiProperty({
     required: true,
     type: String,
@@ -74,6 +74,7 @@ class Task {
   @IsString()
   @Field(() => String)
   title!: string;
+
   @ApiProperty({
     required: true,
   })

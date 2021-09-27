@@ -2,14 +2,17 @@ import * as common from "@nestjs/common";
 import * as swagger from "@nestjs/swagger";
 import * as nestMorgan from "nest-morgan";
 import * as nestAccessControl from "nest-access-control";
-import * as basicAuthGuard from "../../auth/basicAuth.guard";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import * as abacUtil from "../../auth/abac.util";
 import { isRecordNotFoundError } from "../../prisma.util";
 import * as errors from "../../errors";
+import { Request } from "express";
+import { plainToClass } from "class-transformer";
 import { ProjectService } from "../project.service";
 import { ProjectCreateInput } from "./ProjectCreateInput";
 import { ProjectWhereInput } from "./ProjectWhereInput";
 import { ProjectWhereUniqueInput } from "./ProjectWhereUniqueInput";
+import { ProjectFindManyArgs } from "./ProjectFindManyArgs";
 import { ProjectUpdateInput } from "./ProjectUpdateInput";
 import { Project } from "./Project";
 import { TaskWhereInput } from "../../task/base/TaskWhereInput";
@@ -22,7 +25,10 @@ export class ProjectControllerBase {
   ) {}
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Post()
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -32,7 +38,6 @@ export class ProjectControllerBase {
   @swagger.ApiCreatedResponse({ type: Project })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async create(
-    @common.Query() query: {},
     @common.Body() data: ProjectCreateInput,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Project> {
@@ -54,9 +59,7 @@ export class ProjectControllerBase {
         `providing the properties: ${properties} on ${"Project"} creation is forbidden for roles: ${roles}`
       );
     }
-    // @ts-ignore
     return await this.service.create({
-      ...query,
       data: {
         ...data,
 
@@ -84,7 +87,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Get()
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -93,10 +99,17 @@ export class ProjectControllerBase {
   })
   @swagger.ApiOkResponse({ type: [Project] })
   @swagger.ApiForbiddenResponse()
+  @swagger.ApiQuery({
+    type: () => ProjectFindManyArgs,
+    style: "deepObject",
+    explode: true,
+  })
   async findMany(
-    @common.Query() query: ProjectWhereInput,
+    @common.Req() request: Request,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Project[]> {
+    const args = plainToClass(ProjectFindManyArgs, request.query);
+
     const permission = this.rolesBuilder.permission({
       role: userRoles,
       action: "read",
@@ -104,7 +117,7 @@ export class ProjectControllerBase {
       resource: "Project",
     });
     const results = await this.service.findMany({
-      where: query,
+      ...args,
       select: {
         createdAt: true,
         description: true,
@@ -126,7 +139,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Get("/:id")
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -137,7 +153,6 @@ export class ProjectControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async findOne(
-    @common.Query() query: {},
     @common.Param() params: ProjectWhereUniqueInput,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Project | null> {
@@ -148,7 +163,6 @@ export class ProjectControllerBase {
       resource: "Project",
     });
     const result = await this.service.findOne({
-      ...query,
       where: params,
       select: {
         createdAt: true,
@@ -176,7 +190,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Patch("/:id")
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -187,7 +204,6 @@ export class ProjectControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async update(
-    @common.Query() query: {},
     @common.Param() params: ProjectWhereUniqueInput,
     @common.Body()
     data: ProjectUpdateInput,
@@ -212,9 +228,7 @@ export class ProjectControllerBase {
       );
     }
     try {
-      // @ts-ignore
       return await this.service.update({
-        ...query,
         where: params,
         data: {
           ...data,
@@ -251,7 +265,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Delete("/:id")
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -262,12 +279,10 @@ export class ProjectControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async delete(
-    @common.Query() query: {},
     @common.Param() params: ProjectWhereUniqueInput
   ): Promise<Project | null> {
     try {
       return await this.service.delete({
-        ...query,
         where: params,
         select: {
           createdAt: true,
@@ -297,18 +312,27 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Get("/:id/tasks")
   @nestAccessControl.UseRoles({
     resource: "Project",
     action: "read",
     possession: "any",
   })
+  @swagger.ApiQuery({
+    type: () => TaskWhereInput,
+    style: "deepObject",
+    explode: true,
+  })
   async findManyTasks(
+    @common.Req() request: Request,
     @common.Param() params: ProjectWhereUniqueInput,
-    @common.Query() query: TaskWhereInput,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Task[]> {
+    const query: TaskWhereInput = request.query;
     const permission = this.rolesBuilder.permission({
       role: userRoles,
       action: "read",
@@ -325,7 +349,6 @@ export class ProjectControllerBase {
         },
 
         createdAt: true,
-        estimation: true,
         id: true,
 
         project: {
@@ -334,7 +357,7 @@ export class ProjectControllerBase {
           },
         },
 
-        startDate: true,
+        stateDate: true,
         status: true,
         title: true,
         updatedAt: true,
@@ -344,7 +367,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Post("/:id/tasks")
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -386,7 +412,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Patch("/:id/tasks")
   @nestAccessControl.UseRoles({
     resource: "Project",
@@ -428,7 +457,10 @@ export class ProjectControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Delete("/:id/tasks")
   @nestAccessControl.UseRoles({
     resource: "Project",

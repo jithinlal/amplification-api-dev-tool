@@ -3,7 +3,7 @@ import { INestApplication, HttpStatus, ExecutionContext } from "@nestjs/common";
 import request from "supertest";
 import { MorganModule } from "nest-morgan";
 import { ACGuard } from "nest-access-control";
-import { BasicAuthGuard } from "../../auth/basicAuth.guard";
+import { DefaultAuthGuard } from "../../auth/defaultAuth.guard";
 import { ACLModule } from "../../auth/acl.module";
 import { TaskController } from "../task.controller";
 import { TaskService } from "../task.service";
@@ -12,35 +12,31 @@ const nonExistingId = "nonExistingId";
 const existingId = "existingId";
 const CREATE_INPUT = {
   createdAt: new Date(),
-  estimation: 42,
   id: "exampleId",
-  startDate: new Date(),
+  stateDate: new Date(),
   title: "exampleTitle",
   updatedAt: new Date(),
 };
 const CREATE_RESULT = {
   createdAt: new Date(),
-  estimation: 42,
   id: "exampleId",
-  startDate: new Date(),
+  stateDate: new Date(),
   title: "exampleTitle",
   updatedAt: new Date(),
 };
 const FIND_MANY_RESULT = [
   {
     createdAt: new Date(),
-    estimation: 42,
     id: "exampleId",
-    startDate: new Date(),
+    stateDate: new Date(),
     title: "exampleTitle",
     updatedAt: new Date(),
   },
 ];
 const FIND_ONE_RESULT = {
   createdAt: new Date(),
-  estimation: 42,
   id: "exampleId",
-  startDate: new Date(),
+  stateDate: new Date(),
   title: "exampleTitle",
   updatedAt: new Date(),
 };
@@ -91,7 +87,7 @@ describe("Task", () => {
       controllers: [TaskController],
       imports: [MorganModule.forRoot(), ACLModule],
     })
-      .overrideGuard(BasicAuthGuard)
+      .overrideGuard(DefaultAuthGuard)
       .useValue(basicAuthGuard)
       .overrideGuard(ACGuard)
       .useValue(acGuard)
@@ -109,7 +105,7 @@ describe("Task", () => {
       .expect({
         ...CREATE_RESULT,
         createdAt: CREATE_RESULT.createdAt.toISOString(),
-        startDate: CREATE_RESULT.startDate.toISOString(),
+        stateDate: CREATE_RESULT.stateDate.toISOString(),
         updatedAt: CREATE_RESULT.updatedAt.toISOString(),
       });
   });
@@ -122,7 +118,7 @@ describe("Task", () => {
         {
           ...FIND_MANY_RESULT[0],
           createdAt: FIND_MANY_RESULT[0].createdAt.toISOString(),
-          startDate: FIND_MANY_RESULT[0].startDate.toISOString(),
+          stateDate: FIND_MANY_RESULT[0].stateDate.toISOString(),
           updatedAt: FIND_MANY_RESULT[0].updatedAt.toISOString(),
         },
       ]);
@@ -146,7 +142,7 @@ describe("Task", () => {
       .expect({
         ...FIND_ONE_RESULT,
         createdAt: FIND_ONE_RESULT.createdAt.toISOString(),
-        startDate: FIND_ONE_RESULT.startDate.toISOString(),
+        stateDate: FIND_ONE_RESULT.stateDate.toISOString(),
         updatedAt: FIND_ONE_RESULT.updatedAt.toISOString(),
       });
   });
