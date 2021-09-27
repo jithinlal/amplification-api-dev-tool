@@ -1,7 +1,8 @@
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString, IsOptional } from "class-validator";
+import { IsDate, IsString, IsOptional, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
+import { Project } from "../../project/base/Project";
 @ObjectType()
 class User {
   @ApiProperty({
@@ -11,6 +12,7 @@ class User {
   @Type(() => Date)
   @Field(() => Date)
   createdAt!: Date;
+
   @ApiProperty({
     required: false,
     type: String,
@@ -21,6 +23,7 @@ class User {
     nullable: true,
   })
   firstName!: string | null;
+
   @ApiProperty({
     required: true,
     type: String,
@@ -28,6 +31,7 @@ class User {
   @IsString()
   @Field(() => String)
   id!: string;
+
   @ApiProperty({
     required: false,
     type: String,
@@ -38,6 +42,16 @@ class User {
     nullable: true,
   })
   lastName!: string | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => [Project],
+  })
+  @ValidateNested()
+  @Type(() => Project)
+  @IsOptional()
+  projects?: Array<Project>;
+
   @ApiProperty({
     required: true,
     type: [String],
@@ -47,6 +61,7 @@ class User {
   })
   @Field(() => [String])
   roles!: Array<string>;
+
   @ApiProperty({
     required: true,
   })
@@ -54,6 +69,7 @@ class User {
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
+
   @ApiProperty({
     required: true,
     type: String,
