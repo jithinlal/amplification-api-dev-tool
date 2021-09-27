@@ -2,30 +2,49 @@ import * as common from "@nestjs/common";
 import * as graphql from "@nestjs/graphql";
 import * as apollo from "apollo-server-express";
 import * as nestAccessControl from "nest-access-control";
-import * as gqlBasicAuthGuard from "../../auth/gqlBasicAuth.guard";
+import * as gqlDefaultAuthGuard from "../../auth/gqlDefaultAuth.guard";
 import * as gqlACGuard from "../../auth/gqlAC.guard";
 import * as gqlUserRoles from "../../auth/gqlUserRoles.decorator";
 import * as abacUtil from "../../auth/abac.util";
 import { isRecordNotFoundError } from "../../prisma.util";
+import { MetaQueryPayload } from "../../util/MetaQueryPayload";
 import { CreateUserArgs } from "./CreateUserArgs";
 import { UpdateUserArgs } from "./UpdateUserArgs";
 import { DeleteUserArgs } from "./DeleteUserArgs";
 import { UserFindManyArgs } from "./UserFindManyArgs";
 import { UserFindUniqueArgs } from "./UserFindUniqueArgs";
 import { User } from "./User";
-import { ProjectFindManyArgs } from "../../project/base/ProjectFindManyArgs";
-import { Project } from "../../project/base/Project";
-import { TaskFindManyArgs } from "../../task/base/TaskFindManyArgs";
-import { Task } from "../../task/base/Task";
 import { UserService } from "../user.service";
 
 @graphql.Resolver(() => User)
-@common.UseGuards(gqlBasicAuthGuard.GqlBasicAuthGuard, gqlACGuard.GqlACGuard)
+@common.UseGuards(
+  gqlDefaultAuthGuard.GqlDefaultAuthGuard,
+  gqlACGuard.GqlACGuard
+)
 export class UserResolverBase {
   constructor(
     protected readonly service: UserService,
     protected readonly rolesBuilder: nestAccessControl.RolesBuilder
   ) {}
+
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "read",
+    possession: "any",
+  })
+  async _usersMeta(
+    @graphql.Args() args: UserFindManyArgs
+  ): Promise<MetaQueryPayload> {
+    const results = await this.service.count({
+      ...args,
+      skip: undefined,
+      take: undefined,
+    });
+    return {
+      count: results,
+    };
+  }
 
   @graphql.Query(() => [User])
   @nestAccessControl.UseRoles({
@@ -173,47 +192,5 @@ export class UserResolverBase {
       }
       throw error;
     }
-  }
-
-  @graphql.ResolveField(() => [Project])
-  @nestAccessControl.UseRoles({
-    resource: "User",
-    action: "read",
-    possession: "any",
-  })
-  async projects(
-    @graphql.Parent() parent: User,
-    @graphql.Args() args: ProjectFindManyArgs,
-    @gqlUserRoles.UserRoles() userRoles: string[]
-  ): Promise<Project[]> {
-    const permission = this.rolesBuilder.permission({
-      role: userRoles,
-      action: "read",
-      possession: "any",
-      resource: "Project",
-    });
-    const results = await this.service.findProjects(parent.id, args);
-    return results.map((result) => permission.filter(result));
-  }
-
-  @graphql.ResolveField(() => [Task])
-  @nestAccessControl.UseRoles({
-    resource: "User",
-    action: "read",
-    possession: "any",
-  })
-  async tasks(
-    @graphql.Parent() parent: User,
-    @graphql.Args() args: TaskFindManyArgs,
-    @gqlUserRoles.UserRoles() userRoles: string[]
-  ): Promise<Task[]> {
-    const permission = this.rolesBuilder.permission({
-      role: userRoles,
-      action: "read",
-      possession: "any",
-      resource: "Task",
-    });
-    const results = await this.service.findTasks(parent.id, args);
-    return results.map((result) => permission.filter(result));
   }
 }
