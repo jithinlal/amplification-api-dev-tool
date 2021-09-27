@@ -1,8 +1,14 @@
 import { PrismaService } from "nestjs-prisma";
-import { Prisma, Project, Task, User } from "@prisma/client";
+import { Prisma, Project } from "@prisma/client";
 
 export class ProjectServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
+
+  async count<T extends Prisma.ProjectFindManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ProjectFindManyArgs>
+  ): Promise<number> {
+    return this.prisma.project.count(args);
+  }
 
   async findMany<T extends Prisma.ProjectFindManyArgs>(
     args: Prisma.SelectSubset<T, Prisma.ProjectFindManyArgs>
@@ -28,24 +34,5 @@ export class ProjectServiceBase {
     args: Prisma.SelectSubset<T, Prisma.ProjectDeleteArgs>
   ): Promise<Project> {
     return this.prisma.project.delete(args);
-  }
-
-  async findTasks(
-    parentId: string,
-    args: Prisma.TaskFindManyArgs
-  ): Promise<Task[]> {
-    return this.prisma.project
-      .findUnique({
-        where: { id: parentId },
-      })
-      .tasks(args);
-  }
-
-  async getOwner(parentId: string): Promise<User | null> {
-    return this.prisma.project
-      .findUnique({
-        where: { id: parentId },
-      })
-      .owner();
   }
 }
