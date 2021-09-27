@@ -1,8 +1,7 @@
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional, IsDate, ValidateNested } from "class-validator";
+import { IsString, IsOptional, IsDate } from "class-validator";
 import { Type } from "class-transformer";
-import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 @InputType()
 class ProjectUpdateInput {
   @ApiProperty({
@@ -15,16 +14,7 @@ class ProjectUpdateInput {
     nullable: true,
   })
   description?: string | null;
-  @ApiProperty({
-    required: false,
-  })
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  dueDate?: Date | null;
+
   @ApiProperty({
     required: false,
     type: String,
@@ -34,18 +24,19 @@ class ProjectUpdateInput {
   @Field(() => String, {
     nullable: true,
   })
-  name?: string | null;
+  name?: string;
+
   @ApiProperty({
     required: false,
-    type: UserWhereUniqueInput,
+    type: String,
   })
-  @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
+  @IsString()
   @IsOptional()
-  @Field(() => UserWhereUniqueInput, {
+  @Field(() => String, {
     nullable: true,
   })
-  owner?: UserWhereUniqueInput;
+  owner?: string | null;
+
   @ApiProperty({
     required: false,
   })
