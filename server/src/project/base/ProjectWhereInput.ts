@@ -1,91 +1,54 @@
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsOptional, IsString, ValidateNested } from "class-validator";
-import { Type, Transform } from "class-transformer";
-import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { StringFilter } from "../../util/StringFilter";
+import { Type } from "class-transformer";
+import { IsOptional } from "class-validator";
+import { StringNullableFilter } from "../../util/StringNullableFilter";
+import { DateTimeNullableFilter } from "../../util/DateTimeNullableFilter";
 @InputType()
 class ProjectWhereInput {
   @ApiProperty({
     required: false,
+    type: StringFilter,
   })
-  @IsDate()
-  @Type(() => Date)
+  @Type(() => StringFilter)
   @IsOptional()
-  @Field(() => Date, {
+  @Field(() => StringFilter, {
     nullable: true,
   })
-  createdAt?: Date;
+  id?: StringFilter;
+
   @ApiProperty({
     required: false,
-    type: String,
+    type: StringFilter,
   })
-  @IsString()
+  @Type(() => StringFilter)
   @IsOptional()
-  @Field(() => String, {
+  @Field(() => StringFilter, {
     nullable: true,
   })
-  description?: string;
+  name?: StringFilter;
+
   @ApiProperty({
     required: false,
+    type: StringNullableFilter,
   })
-  @IsDate()
-  @Type(() => Date)
+  @Type(() => StringNullableFilter)
   @IsOptional()
-  @Field(() => Date, {
+  @Field(() => StringNullableFilter, {
     nullable: true,
   })
-  dueDate?: Date;
+  owner?: StringNullableFilter;
+
   @ApiProperty({
     required: false,
-    type: String,
+    type: DateTimeNullableFilter,
   })
-  @IsString()
+  @Type(() => DateTimeNullableFilter)
   @IsOptional()
-  @Field(() => String, {
+  @Field(() => DateTimeNullableFilter, {
     nullable: true,
   })
-  id?: string;
-  @ApiProperty({
-    required: false,
-    type: String,
-  })
-  @IsString()
-  @IsOptional()
-  @Field(() => String, {
-    nullable: true,
-  })
-  name?: string;
-  @ApiProperty({
-    required: false,
-    type: UserWhereUniqueInput,
-  })
-  @Transform(JSON.parse)
-  @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
-  @IsOptional()
-  @Field(() => UserWhereUniqueInput, {
-    nullable: true,
-  })
-  owner?: UserWhereUniqueInput;
-  @ApiProperty({
-    required: false,
-  })
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  startDate?: Date;
-  @ApiProperty({
-    required: false,
-  })
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  updatedAt?: Date;
+  startDate?: DateTimeNullableFilter;
 }
 export { ProjectWhereInput };
