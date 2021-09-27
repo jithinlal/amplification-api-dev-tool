@@ -2,14 +2,17 @@ import * as common from "@nestjs/common";
 import * as swagger from "@nestjs/swagger";
 import * as nestMorgan from "nest-morgan";
 import * as nestAccessControl from "nest-access-control";
-import * as basicAuthGuard from "../../auth/basicAuth.guard";
+import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import * as abacUtil from "../../auth/abac.util";
 import { isRecordNotFoundError } from "../../prisma.util";
 import * as errors from "../../errors";
+import { Request } from "express";
+import { plainToClass } from "class-transformer";
 import { TaskService } from "../task.service";
 import { TaskCreateInput } from "./TaskCreateInput";
 import { TaskWhereInput } from "./TaskWhereInput";
 import { TaskWhereUniqueInput } from "./TaskWhereUniqueInput";
+import { TaskFindManyArgs } from "./TaskFindManyArgs";
 import { TaskUpdateInput } from "./TaskUpdateInput";
 import { Task } from "./Task";
 
@@ -20,7 +23,10 @@ export class TaskControllerBase {
   ) {}
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Post()
   @nestAccessControl.UseRoles({
     resource: "Task",
@@ -30,7 +36,6 @@ export class TaskControllerBase {
   @swagger.ApiCreatedResponse({ type: Task })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async create(
-    @common.Query() query: {},
     @common.Body() data: TaskCreateInput,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Task> {
@@ -52,17 +57,13 @@ export class TaskControllerBase {
         `providing the properties: ${properties} on ${"Task"} creation is forbidden for roles: ${roles}`
       );
     }
-    // @ts-ignore
     return await this.service.create({
-      ...query,
       data: {
         ...data,
 
-        assignedTo: data.assignedTo
-          ? {
-              connect: data.assignedTo,
-            }
-          : undefined,
+        assignedTo: {
+          connect: data.assignedTo,
+        },
 
         project: {
           connect: data.project,
@@ -76,7 +77,6 @@ export class TaskControllerBase {
         },
 
         createdAt: true,
-        estimation: true,
         id: true,
 
         project: {
@@ -85,7 +85,7 @@ export class TaskControllerBase {
           },
         },
 
-        startDate: true,
+        stateDate: true,
         status: true,
         title: true,
         updatedAt: true,
@@ -94,7 +94,10 @@ export class TaskControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Get()
   @nestAccessControl.UseRoles({
     resource: "Task",
@@ -103,10 +106,17 @@ export class TaskControllerBase {
   })
   @swagger.ApiOkResponse({ type: [Task] })
   @swagger.ApiForbiddenResponse()
+  @swagger.ApiQuery({
+    type: () => TaskFindManyArgs,
+    style: "deepObject",
+    explode: true,
+  })
   async findMany(
-    @common.Query() query: TaskWhereInput,
+    @common.Req() request: Request,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Task[]> {
+    const args = plainToClass(TaskFindManyArgs, request.query);
+
     const permission = this.rolesBuilder.permission({
       role: userRoles,
       action: "read",
@@ -114,7 +124,7 @@ export class TaskControllerBase {
       resource: "Task",
     });
     const results = await this.service.findMany({
-      where: query,
+      ...args,
       select: {
         assignedTo: {
           select: {
@@ -123,7 +133,6 @@ export class TaskControllerBase {
         },
 
         createdAt: true,
-        estimation: true,
         id: true,
 
         project: {
@@ -132,7 +141,7 @@ export class TaskControllerBase {
           },
         },
 
-        startDate: true,
+        stateDate: true,
         status: true,
         title: true,
         updatedAt: true,
@@ -142,7 +151,10 @@ export class TaskControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Get("/:id")
   @nestAccessControl.UseRoles({
     resource: "Task",
@@ -153,7 +165,6 @@ export class TaskControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async findOne(
-    @common.Query() query: {},
     @common.Param() params: TaskWhereUniqueInput,
     @nestAccessControl.UserRoles() userRoles: string[]
   ): Promise<Task | null> {
@@ -164,7 +175,6 @@ export class TaskControllerBase {
       resource: "Task",
     });
     const result = await this.service.findOne({
-      ...query,
       where: params,
       select: {
         assignedTo: {
@@ -174,7 +184,6 @@ export class TaskControllerBase {
         },
 
         createdAt: true,
-        estimation: true,
         id: true,
 
         project: {
@@ -183,7 +192,7 @@ export class TaskControllerBase {
           },
         },
 
-        startDate: true,
+        stateDate: true,
         status: true,
         title: true,
         updatedAt: true,
@@ -198,7 +207,10 @@ export class TaskControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Patch("/:id")
   @nestAccessControl.UseRoles({
     resource: "Task",
@@ -209,7 +221,6 @@ export class TaskControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async update(
-    @common.Query() query: {},
     @common.Param() params: TaskWhereUniqueInput,
     @common.Body()
     data: TaskUpdateInput,
@@ -234,18 +245,14 @@ export class TaskControllerBase {
       );
     }
     try {
-      // @ts-ignore
       return await this.service.update({
-        ...query,
         where: params,
         data: {
           ...data,
 
-          assignedTo: data.assignedTo
-            ? {
-                connect: data.assignedTo,
-              }
-            : undefined,
+          assignedTo: {
+            connect: data.assignedTo,
+          },
 
           project: {
             connect: data.project,
@@ -259,7 +266,6 @@ export class TaskControllerBase {
           },
 
           createdAt: true,
-          estimation: true,
           id: true,
 
           project: {
@@ -268,7 +274,7 @@ export class TaskControllerBase {
             },
           },
 
-          startDate: true,
+          stateDate: true,
           status: true,
           title: true,
           updatedAt: true,
@@ -285,7 +291,10 @@ export class TaskControllerBase {
   }
 
   @common.UseInterceptors(nestMorgan.MorganInterceptor("combined"))
-  @common.UseGuards(basicAuthGuard.BasicAuthGuard, nestAccessControl.ACGuard)
+  @common.UseGuards(
+    defaultAuthGuard.DefaultAuthGuard,
+    nestAccessControl.ACGuard
+  )
   @common.Delete("/:id")
   @nestAccessControl.UseRoles({
     resource: "Task",
@@ -296,12 +305,10 @@ export class TaskControllerBase {
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @swagger.ApiForbiddenResponse({ type: errors.ForbiddenException })
   async delete(
-    @common.Query() query: {},
     @common.Param() params: TaskWhereUniqueInput
   ): Promise<Task | null> {
     try {
       return await this.service.delete({
-        ...query,
         where: params,
         select: {
           assignedTo: {
@@ -311,7 +318,6 @@ export class TaskControllerBase {
           },
 
           createdAt: true,
-          estimation: true,
           id: true,
 
           project: {
@@ -320,7 +326,7 @@ export class TaskControllerBase {
             },
           },
 
-          startDate: true,
+          stateDate: true,
           status: true,
           title: true,
           updatedAt: true,

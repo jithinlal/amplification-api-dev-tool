@@ -25,7 +25,7 @@ model Project {
   description String?
   dueDate     DateTime?
   id          String    @id @default(cuid())
-  name        String?
+  name        String
   owner       User      @relation(fields: [ownerId], references: [id])
   ownerId     String
   startDate   DateTime?
@@ -34,23 +34,21 @@ model Project {
 }
 
 model Task {
-  assignedTo   User?          @relation(fields: [assignedToId], references: [id])
-  assignedToId String?
-  createdAt    DateTime       @default(now())
-  estimation   Int?
-  id           String         @id @default(cuid())
-  project      Project        @relation(fields: [projectId], references: [id])
+  assignedTo   User            @relation(fields: [assignedToId], references: [id])
+  assignedToId String
+  createdAt    DateTime        @default(now())
+  id           String          @id @default(cuid())
+  project      Project         @relation(fields: [projectId], references: [id])
   projectId    String
-  startDate    DateTime
-  status       EnumTaskStatus
+  stateDate    DateTime?
+  status       EnumTaskStatus?
   title        String
-  updatedAt    DateTime       @updatedAt
+  updatedAt    DateTime        @updatedAt
 }
 
 enum EnumTaskStatus {
-  new
-  pending
-  onHold
-  ongoing
-  done
+  New
+  Pending
+  Ongoing
+  Done
 }

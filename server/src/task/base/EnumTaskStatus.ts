@@ -1,11 +1,10 @@
 import { registerEnumType } from "@nestjs/graphql";
 
 export enum EnumTaskStatus {
-  New = "new",
-  Pending = "pending",
-  OnHold = "onHold",
-  Ongoing = "ongoing",
-  Done = "done",
+  New = "New",
+  Pending = "Pending",
+  Ongoing = "Ongoing",
+  Done = "Done",
 }
 
 registerEnumType(EnumTaskStatus, {
