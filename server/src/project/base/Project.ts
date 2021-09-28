@@ -2,7 +2,8 @@ import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDate, IsString, IsOptional, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { User } from "../../user/base/User";
+import { Task } from "../../task/base/Task";
 @ObjectType()
 class Project {
   @ApiProperty({
@@ -12,6 +13,7 @@ class Project {
   @Type(() => Date)
   @Field(() => Date)
   createdAt!: Date;
+
   @ApiProperty({
     required: false,
     type: String,
@@ -22,6 +24,7 @@ class Project {
     nullable: true,
   })
   description!: string | null;
+
   @ApiProperty({
     required: false,
   })
@@ -32,6 +35,7 @@ class Project {
     nullable: true,
   })
   dueDate!: Date | null;
+
   @ApiProperty({
     required: true,
     type: String,
@@ -39,23 +43,23 @@ class Project {
   @IsString()
   @Field(() => String)
   id!: string;
+
   @ApiProperty({
-    required: false,
+    required: true,
     type: String,
   })
   @IsString()
-  @IsOptional()
-  @Field(() => String, {
-    nullable: true,
-  })
-  name!: string | null;
+  @Field(() => String)
+  name!: string;
+
   @ApiProperty({
     required: true,
-    type: UserWhereUniqueInput,
+    type: () => User,
   })
   @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
-  owner?: UserWhereUniqueInput;
+  @Type(() => User)
+  owner?: User;
+
   @ApiProperty({
     required: false,
   })
@@ -66,6 +70,16 @@ class Project {
     nullable: true,
   })
   startDate!: Date | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => [Task],
+  })
+  @ValidateNested()
+  @Type(() => Task)
+  @IsOptional()
+  tasks?: Array<Task>;
+
   @ApiProperty({
     required: true,
   })

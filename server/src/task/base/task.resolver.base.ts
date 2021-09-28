@@ -2,11 +2,12 @@ import * as common from "@nestjs/common";
 import * as graphql from "@nestjs/graphql";
 import * as apollo from "apollo-server-express";
 import * as nestAccessControl from "nest-access-control";
-import * as gqlBasicAuthGuard from "../../auth/gqlBasicAuth.guard";
+import * as gqlDefaultAuthGuard from "../../auth/gqlDefaultAuth.guard";
 import * as gqlACGuard from "../../auth/gqlAC.guard";
 import * as gqlUserRoles from "../../auth/gqlUserRoles.decorator";
 import * as abacUtil from "../../auth/abac.util";
 import { isRecordNotFoundError } from "../../prisma.util";
+import { MetaQueryPayload } from "../../util/MetaQueryPayload";
 import { CreateTaskArgs } from "./CreateTaskArgs";
 import { UpdateTaskArgs } from "./UpdateTaskArgs";
 import { DeleteTaskArgs } from "./DeleteTaskArgs";
@@ -18,12 +19,34 @@ import { Project } from "../../project/base/Project";
 import { TaskService } from "../task.service";
 
 @graphql.Resolver(() => Task)
-@common.UseGuards(gqlBasicAuthGuard.GqlBasicAuthGuard, gqlACGuard.GqlACGuard)
+@common.UseGuards(
+  gqlDefaultAuthGuard.GqlDefaultAuthGuard,
+  gqlACGuard.GqlACGuard
+)
 export class TaskResolverBase {
   constructor(
     protected readonly service: TaskService,
     protected readonly rolesBuilder: nestAccessControl.RolesBuilder
   ) {}
+
+  @graphql.Query(() => MetaQueryPayload)
+  @nestAccessControl.UseRoles({
+    resource: "Task",
+    action: "read",
+    possession: "any",
+  })
+  async _tasksMeta(
+    @graphql.Args() args: TaskFindManyArgs
+  ): Promise<MetaQueryPayload> {
+    const results = await this.service.count({
+      ...args,
+      skip: undefined,
+      take: undefined,
+    });
+    return {
+      count: results,
+    };
+  }
 
   @graphql.Query(() => [Task])
   @nestAccessControl.UseRoles({
@@ -105,11 +128,9 @@ export class TaskResolverBase {
       data: {
         ...args.data,
 
-        assignedTo: args.data.assignedTo
-          ? {
-              connect: args.data.assignedTo,
-            }
-          : undefined,
+        assignedTo: {
+          connect: args.data.assignedTo,
+        },
 
         project: {
           connect: args.data.project,
@@ -156,11 +177,9 @@ export class TaskResolverBase {
         data: {
           ...args.data,
 
-          assignedTo: args.data.assignedTo
-            ? {
-                connect: args.data.assignedTo,
-              }
-            : undefined,
+          assignedTo: {
+            connect: args.data.assignedTo,
+          },
 
           project: {
             connect: args.data.project,

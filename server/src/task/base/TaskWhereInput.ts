@@ -1,24 +1,17 @@
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
-import { Transform, Type } from "class-transformer";
-import {
-  ValidateNested,
-  IsOptional,
-  IsDate,
-  IsInt,
-  IsString,
-  IsEnum,
-} from "class-validator";
+import { ValidateNested, IsOptional, IsEnum } from "class-validator";
+import { Type } from "class-transformer";
+import { StringFilter } from "../../util/StringFilter";
 import { ProjectWhereUniqueInput } from "../../project/base/ProjectWhereUniqueInput";
 import { EnumTaskStatus } from "./EnumTaskStatus";
 @InputType()
 class TaskWhereInput {
   @ApiProperty({
     required: false,
-    type: UserWhereUniqueInput,
+    type: () => UserWhereUniqueInput,
   })
-  @Transform(JSON.parse)
   @ValidateNested()
   @Type(() => UserWhereUniqueInput)
   @IsOptional()
@@ -26,41 +19,22 @@ class TaskWhereInput {
     nullable: true,
   })
   assignedTo?: UserWhereUniqueInput;
+
   @ApiProperty({
     required: false,
+    type: StringFilter,
   })
-  @IsDate()
-  @Type(() => Date)
+  @Type(() => StringFilter)
   @IsOptional()
-  @Field(() => Date, {
+  @Field(() => StringFilter, {
     nullable: true,
   })
-  createdAt?: Date;
+  id?: StringFilter;
+
   @ApiProperty({
     required: false,
-    type: Number,
+    type: () => ProjectWhereUniqueInput,
   })
-  @IsInt()
-  @IsOptional()
-  @Field(() => Number, {
-    nullable: true,
-  })
-  estimation?: number;
-  @ApiProperty({
-    required: false,
-    type: String,
-  })
-  @IsString()
-  @IsOptional()
-  @Field(() => String, {
-    nullable: true,
-  })
-  id?: string;
-  @ApiProperty({
-    required: false,
-    type: ProjectWhereUniqueInput,
-  })
-  @Transform(JSON.parse)
   @ValidateNested()
   @Type(() => ProjectWhereUniqueInput)
   @IsOptional()
@@ -68,16 +42,7 @@ class TaskWhereInput {
     nullable: true,
   })
   project?: ProjectWhereUniqueInput;
-  @ApiProperty({
-    required: false,
-  })
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  startDate?: Date;
+
   @ApiProperty({
     required: false,
     enum: EnumTaskStatus,
@@ -87,26 +52,17 @@ class TaskWhereInput {
   @Field(() => EnumTaskStatus, {
     nullable: true,
   })
-  status?: "new" | "pending" | "onHold" | "ongoing" | "done";
+  status?: "New" | "Pending" | "Ongoing" | "Done";
+
   @ApiProperty({
     required: false,
-    type: String,
+    type: StringFilter,
   })
-  @IsString()
+  @Type(() => StringFilter)
   @IsOptional()
-  @Field(() => String, {
+  @Field(() => StringFilter, {
     nullable: true,
   })
-  title?: string;
-  @ApiProperty({
-    required: false,
-  })
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  updatedAt?: Date;
+  title?: StringFilter;
 }
 export { TaskWhereInput };

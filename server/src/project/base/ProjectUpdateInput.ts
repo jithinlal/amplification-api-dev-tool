@@ -15,6 +15,7 @@ class ProjectUpdateInput {
     nullable: true,
   })
   description?: string | null;
+
   @ApiProperty({
     required: false,
   })
@@ -25,6 +26,7 @@ class ProjectUpdateInput {
     nullable: true,
   })
   dueDate?: Date | null;
+
   @ApiProperty({
     required: false,
     type: String,
@@ -34,10 +36,11 @@ class ProjectUpdateInput {
   @Field(() => String, {
     nullable: true,
   })
-  name?: string | null;
+  name?: string;
+
   @ApiProperty({
     required: false,
-    type: UserWhereUniqueInput,
+    type: () => UserWhereUniqueInput,
   })
   @ValidateNested()
   @Type(() => UserWhereUniqueInput)
@@ -46,6 +49,7 @@ class ProjectUpdateInput {
     nullable: true,
   })
   owner?: UserWhereUniqueInput;
+
   @ApiProperty({
     required: false,
   })
