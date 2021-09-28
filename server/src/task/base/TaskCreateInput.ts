@@ -3,9 +3,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 import {
   ValidateNested,
-  IsOptional,
-  IsInt,
   IsDate,
+  IsOptional,
   IsEnum,
   IsString,
 } from "class-validator";
@@ -15,48 +14,45 @@ import { EnumTaskStatus } from "./EnumTaskStatus";
 @InputType()
 class TaskCreateInput {
   @ApiProperty({
-    required: false,
-    type: UserWhereUniqueInput,
+    required: true,
+    type: () => UserWhereUniqueInput,
   })
   @ValidateNested()
   @Type(() => UserWhereUniqueInput)
-  @IsOptional()
-  @Field(() => UserWhereUniqueInput, {
-    nullable: true,
-  })
-  assignedTo?: UserWhereUniqueInput | null;
-  @ApiProperty({
-    required: false,
-    type: Number,
-  })
-  @IsInt()
-  @IsOptional()
-  @Field(() => Number, {
-    nullable: true,
-  })
-  estimation?: number | null;
+  @Field(() => UserWhereUniqueInput)
+  assignedTo!: UserWhereUniqueInput;
+
   @ApiProperty({
     required: true,
-    type: ProjectWhereUniqueInput,
+    type: () => ProjectWhereUniqueInput,
   })
   @ValidateNested()
   @Type(() => ProjectWhereUniqueInput)
   @Field(() => ProjectWhereUniqueInput)
   project!: ProjectWhereUniqueInput;
+
   @ApiProperty({
-    required: true,
+    required: false,
   })
   @IsDate()
   @Type(() => Date)
-  @Field(() => Date)
-  startDate!: Date;
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  stateDate?: Date | null;
+
   @ApiProperty({
-    required: true,
+    required: false,
     enum: EnumTaskStatus,
   })
   @IsEnum(EnumTaskStatus)
-  @Field(() => EnumTaskStatus)
-  status!: "new" | "pending" | "onHold" | "ongoing" | "done";
+  @IsOptional()
+  @Field(() => EnumTaskStatus, {
+    nullable: true,
+  })
+  status?: "New" | "Pending" | "Ongoing" | "Done" | null;
+
   @ApiProperty({
     required: true,
     type: String,

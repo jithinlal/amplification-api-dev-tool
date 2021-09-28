@@ -4,7 +4,6 @@ import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 import {
   ValidateNested,
   IsOptional,
-  IsInt,
   IsDate,
   IsEnum,
   IsString,
@@ -16,7 +15,7 @@ import { EnumTaskStatus } from "./EnumTaskStatus";
 class TaskUpdateInput {
   @ApiProperty({
     required: false,
-    type: UserWhereUniqueInput,
+    type: () => UserWhereUniqueInput,
   })
   @ValidateNested()
   @Type(() => UserWhereUniqueInput)
@@ -24,20 +23,11 @@ class TaskUpdateInput {
   @Field(() => UserWhereUniqueInput, {
     nullable: true,
   })
-  assignedTo?: UserWhereUniqueInput | null;
+  assignedTo?: UserWhereUniqueInput;
+
   @ApiProperty({
     required: false,
-    type: Number,
-  })
-  @IsInt()
-  @IsOptional()
-  @Field(() => Number, {
-    nullable: true,
-  })
-  estimation?: number | null;
-  @ApiProperty({
-    required: false,
-    type: ProjectWhereUniqueInput,
+    type: () => ProjectWhereUniqueInput,
   })
   @ValidateNested()
   @Type(() => ProjectWhereUniqueInput)
@@ -46,6 +36,7 @@ class TaskUpdateInput {
     nullable: true,
   })
   project?: ProjectWhereUniqueInput;
+
   @ApiProperty({
     required: false,
   })
@@ -55,7 +46,8 @@ class TaskUpdateInput {
   @Field(() => Date, {
     nullable: true,
   })
-  startDate?: Date;
+  stateDate?: Date | null;
+
   @ApiProperty({
     required: false,
     enum: EnumTaskStatus,
@@ -65,7 +57,8 @@ class TaskUpdateInput {
   @Field(() => EnumTaskStatus, {
     nullable: true,
   })
-  status?: "new" | "pending" | "onHold" | "ongoing" | "done";
+  status?: "New" | "Pending" | "Ongoing" | "Done" | null;
+
   @ApiProperty({
     required: false,
     type: String,
